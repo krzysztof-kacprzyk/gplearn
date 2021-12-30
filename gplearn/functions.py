@@ -149,6 +149,11 @@ def _sigmoid(x1):
     with np.errstate(over='ignore', under='ignore'):
         return 1 / (1 + np.exp(-x1))
 
+def _protected_power(x1, x2):
+    """Closure of power (x1/x2) for negative numbers."""
+    with np.errstate(divide='ignore', invalid='ignore'):
+        return np.where(np.logical_and(np.minimum(x1, x2) >= 0, np.maximum(x1, x2) <= 10), np.power(x1, x2), 1000)
+
 
 add2 = _Function(function=np.add, name='add', arity=2)
 sub2 = _Function(function=np.subtract, name='sub', arity=2)
@@ -165,6 +170,7 @@ sin1 = _Function(function=np.sin, name='sin', arity=1)
 cos1 = _Function(function=np.cos, name='cos', arity=1)
 tan1 = _Function(function=np.tan, name='tan', arity=1)
 sig1 = _Function(function=_sigmoid, name='sig', arity=1)
+pow2 = _Function(function=_protected_power, name='pow', arity=2)
 
 _function_map = {'add': add2,
                  'sub': sub2,
@@ -179,4 +185,5 @@ _function_map = {'add': add2,
                  'min': min2,
                  'sin': sin1,
                  'cos': cos1,
-                 'tan': tan1}
+                 'tan': tan1,
+                 'pow': pow2}
