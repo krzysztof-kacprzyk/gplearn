@@ -154,6 +154,9 @@ def _protected_power(x1, x2):
     with np.errstate(divide='ignore', invalid='ignore'):
         return np.where(np.logical_and(np.minimum(x1, x2) >= 0, np.maximum(x1, x2) <= 10), np.power(x1, x2), 1000)
 
+def _protected_exp(x1):
+    return np.where(x1 <= 10, np.exp(x1), 1000)
+
 
 add2 = _Function(function=np.add, name='add', arity=2)
 sub2 = _Function(function=np.subtract, name='sub', arity=2)
@@ -171,6 +174,7 @@ cos1 = _Function(function=np.cos, name='cos', arity=1)
 tan1 = _Function(function=np.tan, name='tan', arity=1)
 sig1 = _Function(function=_sigmoid, name='sig', arity=1)
 pow2 = _Function(function=_protected_power, name='pow', arity=2)
+exp1 = _Function(function=_protected_exp, name='exp', arity=1)
 
 _function_map = {'add': add2,
                  'sub': sub2,
@@ -186,4 +190,5 @@ _function_map = {'add': add2,
                  'sin': sin1,
                  'cos': cos1,
                  'tan': tan1,
-                 'pow': pow2}
+                 'pow': pow2,
+                 'exp': exp1}
