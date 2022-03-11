@@ -190,7 +190,8 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
                  low_memory=False,
                  n_jobs=1,
                  verbose=0,
-                 random_state=None):
+                 random_state=None,
+                 patience=10):
 
         self.population_size = population_size
         self.hall_of_fame = hall_of_fame
@@ -218,6 +219,7 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
         self.n_jobs = n_jobs
         self.verbose = verbose
         self.random_state = random_state
+        self.patience = patience
 
     def _verbose_reporter(self, run_details=None):
         """A report of the progress of the evolution process.
@@ -459,6 +461,13 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
             # Print header fields
             self._verbose_reporter()
 
+        # Patience does not work with warm start! TODO:
+        no_improvement = 0
+        if self._metric.greater_is_better:
+            best_fitness_so_far = -1e300
+        else:
+            best_fitness_so_far = 1e300
+
         for gen in range(prior_generations, self.generations):
 
             start_time = time()
@@ -546,6 +555,25 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
                 best_fitness = fitness[np.argmin(fitness)]
                 if best_fitness <= self.stopping_criteria:
                     break
+
+            # Patience
+            if self._metric.greater_is_better:
+                if best_fitness > best_fitness_so_far:
+                    best_fitness_so_far = best_fitness
+                    no_improvement = 0
+                else:
+                    no_improvement += 1
+            else:
+                if best_fitness < best_fitness_so_far:
+                    best_fitness_so_far = best_fitness
+                    no_improvement = 0
+                else:
+                    no_improvement += 1
+
+            if no_improvement == self.patience:
+                break
+
+
 
         if isinstance(self, TransformerMixin):
             # Find the best individuals in the final generation
@@ -808,7 +836,8 @@ class SymbolicRegressor(BaseSymbolic, RegressorMixin):
                  low_memory=False,
                  n_jobs=1,
                  verbose=0,
-                 random_state=None):
+                 random_state=None,
+                 patience=10):
         super(SymbolicRegressor, self).__init__(
             population_size=population_size,
             generations=generations,
@@ -831,7 +860,8 @@ class SymbolicRegressor(BaseSymbolic, RegressorMixin):
             low_memory=low_memory,
             n_jobs=n_jobs,
             verbose=verbose,
-            random_state=random_state)
+            random_state=random_state,
+            patience=patience)
 
     def __str__(self):
         """Overloads `print` output of the object to resemble a LISP tree."""
@@ -1097,7 +1127,8 @@ class SymbolicClassifier(BaseSymbolic, ClassifierMixin):
                  low_memory=False,
                  n_jobs=1,
                  verbose=0,
-                 random_state=None):
+                 random_state=None,
+                 patience=10):
         super(SymbolicClassifier, self).__init__(
             population_size=population_size,
             generations=generations,
@@ -1122,7 +1153,8 @@ class SymbolicClassifier(BaseSymbolic, ClassifierMixin):
             low_memory=low_memory,
             n_jobs=n_jobs,
             verbose=verbose,
-            random_state=random_state)
+            random_state=random_state,
+            patience=10)
 
     def __str__(self):
         """Overloads `print` output of the object to resemble a LISP tree."""
