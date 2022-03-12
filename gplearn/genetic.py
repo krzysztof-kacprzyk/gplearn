@@ -191,7 +191,8 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
                  n_jobs=1,
                  verbose=0,
                  random_state=None,
-                 patience=10):
+                 patience=10,
+                 best_so_far=False):
 
         self.population_size = population_size
         self.hall_of_fame = hall_of_fame
@@ -220,6 +221,7 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
         self.verbose = verbose
         self.random_state = random_state
         self.patience = patience
+        self.best_so_far = best_so_far
 
     def _verbose_reporter(self, run_details=None):
         """A report of the progress of the evolution process.
@@ -468,6 +470,8 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
         else:
             best_fitness_so_far = 1e300
 
+        best_program_so_far = None
+
         for gen in range(prior_generations, self.generations):
 
             start_time = time()
@@ -560,12 +564,14 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
             if self._metric.greater_is_better:
                 if best_fitness > best_fitness_so_far:
                     best_fitness_so_far = best_fitness
+                    best_program_so_far = best_program
                     no_improvement = 0
                 else:
                     no_improvement += 1
             else:
                 if best_fitness < best_fitness_so_far:
                     best_fitness_so_far = best_fitness
+                    best_program_so_far = best_program
                     no_improvement = 0
                 else:
                     no_improvement += 1
@@ -608,11 +614,14 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
                                    hall_of_fame[components]]
 
         else:
-            # Find the best individual in the final generation
-            if self._metric.greater_is_better:
-                self._program = self._programs[-1][np.argmax(fitness)]
+            if self.best_so_far:
+                self._program = best_program_so_far
             else:
-                self._program = self._programs[-1][np.argmin(fitness)]
+                # Find the best individual in the final generation
+                if self._metric.greater_is_better:
+                    self._program = self._programs[-1][np.argmax(fitness)]
+                else:
+                    self._program = self._programs[-1][np.argmin(fitness)]
 
         return self
 
@@ -837,7 +846,8 @@ class SymbolicRegressor(BaseSymbolic, RegressorMixin):
                  n_jobs=1,
                  verbose=0,
                  random_state=None,
-                 patience=10):
+                 patience=10,
+                 best_so_far=False):
         super(SymbolicRegressor, self).__init__(
             population_size=population_size,
             generations=generations,
@@ -861,7 +871,8 @@ class SymbolicRegressor(BaseSymbolic, RegressorMixin):
             n_jobs=n_jobs,
             verbose=verbose,
             random_state=random_state,
-            patience=patience)
+            patience=patience,
+            best_so_far=best_so_far)
 
     def __str__(self):
         """Overloads `print` output of the object to resemble a LISP tree."""
