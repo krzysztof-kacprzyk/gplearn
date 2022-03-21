@@ -549,6 +549,9 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
 
             if self.verbose:
                 self._verbose_reporter(self.run_details_)
+                print(best_program)
+
+            
 
             # Check for early stopping
             if self._metric.greater_is_better:
