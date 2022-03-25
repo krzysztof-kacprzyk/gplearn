@@ -466,7 +466,7 @@ class _Program(object):
 
         return raw_fitness
 
-    def fitness(self, parsimony_coefficient=None):
+    def fitness(self, parsimony_coefficient=None, parsimony_multiplicative=False):
         """Evaluate the penalized fitness of the program according to X, y.
 
         Parameters
@@ -483,8 +483,25 @@ class _Program(object):
         """
         if parsimony_coefficient is None:
             parsimony_coefficient = self.parsimony_coefficient
-        penalty = parsimony_coefficient * len(self.program) * self.metric.sign
-        return self.raw_fitness_ - penalty
+        if parsimony_multiplicative:
+            # second_pars_coeff = 0.05
+            # cutoff = 20
+            # normalizing_constant = np.exp(second_pars_coeff*cutoff) / (1+parsimony_coefficient *cutoff)
+            if self.raw_fitness_ < 0:
+                raise ValueError("parsimony_multiplicative can be True only if loss is non-negative")
+            if self.metric.sign == 1:
+                # if self.length_ < cutoff:
+                return self.raw_fitness_ / (1+parsimony_coefficient * self.length_)
+                # else:
+                #     return self.raw_fitness_ / ((np.exp(second_pars_coeff*self.length_))/normalizing_constant)
+            elif self.metric.sign == -1:
+                # if self.length_ < cutoff:
+                return self.raw_fitness_ * (1+parsimony_coefficient * self.length_)
+                # else:
+                #     return self.raw_fitness_ * ((np.exp(second_pars_coeff*self.length_))/normalizing_constant)
+        else:
+            penalty = parsimony_coefficient * len(self.program) * self.metric.sign
+            return self.raw_fitness_ - penalty
 
     def get_subtree(self, random_state, program=None):
         """Get a random subtree from the program.

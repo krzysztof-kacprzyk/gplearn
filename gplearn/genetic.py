@@ -192,7 +192,8 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
                  verbose=0,
                  random_state=None,
                  patience=10,
-                 best_so_far=False):
+                 best_so_far=False,
+                 parsimony_multiplicative=False):
 
         self.population_size = population_size
         self.hall_of_fame = hall_of_fame
@@ -222,6 +223,7 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
         self.random_state = random_state
         self.patience = patience
         self.best_so_far = best_so_far
+        self.parsimony_multiplicative = parsimony_multiplicative
 
     def _verbose_reporter(self, run_details=None):
         """A report of the progress of the evolution process.
@@ -508,7 +510,7 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
                 parsimony_coefficient = (np.cov(length, fitness)[1, 0] /
                                          np.var(length))
             for program in population:
-                program.fitness_ = program.fitness(parsimony_coefficient)
+                program.fitness_ = program.fitness(parsimony_coefficient, parsimony_multiplicative=self.parsimony_multiplicative)
 
             self._programs.append(population)
 
@@ -850,7 +852,8 @@ class SymbolicRegressor(BaseSymbolic, RegressorMixin):
                  verbose=0,
                  random_state=None,
                  patience=10,
-                 best_so_far=False):
+                 best_so_far=False,
+                 parsimony_multiplicative=False):
         super(SymbolicRegressor, self).__init__(
             population_size=population_size,
             generations=generations,
@@ -875,7 +878,8 @@ class SymbolicRegressor(BaseSymbolic, RegressorMixin):
             verbose=verbose,
             random_state=random_state,
             patience=patience,
-            best_so_far=best_so_far)
+            best_so_far=best_so_far,
+            parsimony_multiplicative=parsimony_multiplicative)
 
     def __str__(self):
         """Overloads `print` output of the object to resemble a LISP tree."""
