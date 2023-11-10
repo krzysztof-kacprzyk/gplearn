@@ -551,7 +551,7 @@ class BaseSymbolic(BaseEstimator, metaclass=ABCMeta):
 
             if self.verbose:
                 self._verbose_reporter(self.run_details_)
-                print(best_program)
+                # print(best_program)
 
             
 
