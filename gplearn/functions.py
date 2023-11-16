@@ -41,6 +41,7 @@ class _Function(object):
         self.function = function
         self.name = name
         self.arity = arity
+        np.seterr(over='ignore')
 
     def __call__(self, *args):
         return self.function(*args)
